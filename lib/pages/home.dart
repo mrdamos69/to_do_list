@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -105,18 +106,18 @@ class _HomeState extends State<Home> {
                   actions: [
                     ElevatedButton(
                         onPressed: () {
-                          if(checkAdd) {
-                            setState(() {
-                              todoList.add(_userToDo);
-                            });
-                            Navigator.of(context).pop();
-                            checkAdd = false;
-                          }
                           // if(checkAdd) {
-                          //   FirebaseFirestore.instance.collection('items').add({'item': _userToDo});
+                          //   setState(() {
+                          //     todoList.add(_userToDo);
+                          //   });
                           //   Navigator.of(context).pop();
                           //   checkAdd = false;
                           // }
+                          if(checkAdd) {
+                            FirebaseFirestore.instance.collection('items').add({'item': _userToDo});
+                            Navigator.of(context).pop();
+                            checkAdd = false;
+                          }
                         },
                         child: Text('Добавить')
                     )
