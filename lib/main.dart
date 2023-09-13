@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:to_do_list/pages/home.dart';
-import 'package:to_do_list/pages/mainScreen.dart';
+import 'package:todolist/pages/home.dart';
+import 'package:todolist/pages/mainScreen.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MaterialApp(
     theme: ThemeData(
       primarySwatch: Colors.lightBlue,
@@ -10,7 +18,7 @@ void main() {
     initialRoute: '/',
     routes: {
       '/': (context) => MainScreen(),
-      '/todo' : (context) => Home(),
+      '/todo': (context) => Home(),
     },
   ));
 }
