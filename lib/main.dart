@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:todolist/pages/home.dart';
-import 'package:todolist/pages/mainScreen.dart';
+import 'package:todolist/pages/login.dart';
+import 'package:todolist/pages/registration.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -17,8 +18,9 @@ void main() async{
     ),
     initialRoute: '/',
     routes: {
-      '/': (context) => MainScreen(),
+      '/': (context) => login(),
       '/todo': (context) => Home(),
+      '/registration' : (context) => Registration(),
     },
   ));
 }
