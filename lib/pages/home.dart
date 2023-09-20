@@ -110,13 +110,6 @@ class _HomeState extends State<Home> {
                   actions: [
                     ElevatedButton(
                         onPressed: () {
-                          // if(checkAdd) {
-                          //   setState(() {
-                          //     todoList.add(_userToDo);
-                          //   });
-                          //   Navigator.of(context).pop();
-                          //   checkAdd = false;
-                          // }
                           if(checkAdd) {
                             FirebaseFirestore.instance.collection('items').add({'item': _userToDo});
                             Navigator.of(context).pop();
