@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Registration extends StatefulWidget {
   const Registration({super.key});
@@ -9,12 +10,12 @@ class Registration extends StatefulWidget {
 
 class _RegistrationState extends State<Registration> {
   @override
-  double _buttonSize = 15;
-  double _buttonPadding = 5;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final double _buttonSize = 15;
+  final double _buttonPadding = 5;
   bool _showPassword = false;
-  String email = "";
-  String password = "";
-  String name = "";
 
   void _togglevisibility() {
     setState(() {
@@ -22,25 +23,43 @@ class _RegistrationState extends State<Registration> {
     });
   }
 
+  void _registration (String emailAddress, String password) async {
+    try {
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailAddress,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        print('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        print('The account already exists for that email.');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   bool _isValidEmail(String email) {
     return EmailValidator.validate(email);
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.grey[900],
         appBar: AppBar(
-          title: Text('Registration in ToDoList', style: TextStyle(color: Colors.white),),
+          title: const Text('Registration in ToDoList', style: TextStyle(color: Colors.white),),
           centerTitle: true,
         ),
 
         body: Column(
           children: [
-            Padding(
+            const Padding(
               padding: EdgeInsets.all(30),
             ),
             TextFormField(
-              // controller: _controller,
+              controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
                   labelText: "Enter your email",
@@ -55,8 +74,8 @@ class _RegistrationState extends State<Registration> {
             Padding(padding: EdgeInsets.all(_buttonPadding),),
 
             TextFormField(
+              controller: _nameController,
               keyboardType: TextInputType.text,
-              obscureText: !_showPassword,
               decoration: const InputDecoration(
                 labelText: "Enter your name",
                 hintStyle: TextStyle(color: Colors.white12),
@@ -68,19 +87,21 @@ class _RegistrationState extends State<Registration> {
                 ),
               ),
               style: const TextStyle(color: Colors.lightBlue),
+
             ),
 
             Padding(padding: EdgeInsets.all(_buttonPadding),),
 
             TextFormField(
+              controller: _passwordController,
               keyboardType: TextInputType.text,
               obscureText: !_showPassword,
               decoration: InputDecoration(
                 labelText: "Enter your password",
-                hintStyle: TextStyle(color: Colors.white12),
-                labelStyle: TextStyle(color: Colors.white54, ),
+                hintStyle: const TextStyle(color: Colors.white12),
+                labelStyle: const TextStyle(color: Colors.white54, ),
                 border: InputBorder.none,
-                icon: Icon(
+                icon: const Icon(
                   Icons.password,
                   color: Colors.lightBlue,
                 ),
@@ -101,18 +122,21 @@ class _RegistrationState extends State<Registration> {
               obscureText: !_showPassword,
               decoration: InputDecoration(
                 labelText: "Repeat your password",
-                hintStyle: TextStyle(color: Colors.white12),
-                labelStyle: TextStyle(color: Colors.white54, ),
+                hintStyle: const TextStyle(color: Colors.white12),
+                labelStyle: const TextStyle(color: Colors.white54, ),
                 border: InputBorder.none,
-                icon: Icon(
+                icon: const Icon(
                   Icons.password,
                   color: Colors.lightBlue,
                 ),
+
                 suffixIcon: GestureDetector(
                   onTap: _togglevisibility,
                   child: Icon(
                       _showPassword ? Icons.visibility : Icons
-                          .visibility_off, color: Colors.white24),
+                          .visibility_off, color: Colors.white24
+                  ),
+
                 ),
               ),
               style: const TextStyle(color: Colors.lightBlue),
@@ -123,21 +147,19 @@ class _RegistrationState extends State<Registration> {
               children: [
                 const Padding(padding: EdgeInsets.only(left: 100, top: 10),),
                 ElevatedButton(
-                  // onPressed: () {
-                  //   Navigator.pushReplacementNamed(context, '/');
-                  // },
                   onPressed: () async {
                     await showDialog(
                       context: context,
                       builder: (context) {
                         return AlertDialog(
-                          title: Text('You are successfully registered'),
+                          title: const Text('You are successfully registered'),
                           actions: [
                             ElevatedButton(
                                 onPressed: () {
+                                  _registration(_emailController.text, _passwordController.text,);
                                   Navigator.pushReplacementNamed(context, '/');
                                 },
-                                child: Text('Ok'),
+                                child: const Text('Ok'),
                             ),
                           ],
                         );
@@ -145,6 +167,7 @@ class _RegistrationState extends State<Registration> {
                     );
                   },
                   child: Text('Registration', style: TextStyle(fontSize: _buttonSize)),
+
                 ),
                 const Padding(padding: EdgeInsets.only(left: 20),),
                 ElevatedButton(
