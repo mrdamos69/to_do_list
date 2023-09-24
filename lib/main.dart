@@ -14,7 +14,7 @@ void main() async{
   );
   runApp(MaterialApp(
     theme: ThemeData(
-      primarySwatch: Colors.lightBlue,
+      primarySwatch: Colors.orange,
     ),
     initialRoute: '/',
     routes: {
