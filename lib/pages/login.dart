@@ -14,8 +14,10 @@ class _loginState extends State<login> {
       final _emailController = TextEditingController();
       final _passwordController = TextEditingController();
       bool _showPassword = false;
+      String? errorCode;
 
-      Future<String?> signInWithEmailAndPassword(String email, String password) async {
+      Future<String?> signInWithEmailAndPassword(
+          String email, String password) async {
         try {
           await FirebaseAuth.instance.signInWithEmailAndPassword(
             email: email,
@@ -23,7 +25,11 @@ class _loginState extends State<login> {
           );
           return null; // Sign-in successful
         } catch (e) {
-          return e.toString(); // Return an error message if sign-in fails
+          if (e is FirebaseAuthException) {
+            return e.message; // Return the Firebase error message
+          } else {
+            return 'An unknown error occurred'; // Handle other exceptions
+          }
         }
       }
 
@@ -97,17 +103,18 @@ class _loginState extends State<login> {
 
                     ElevatedButton(
                       onPressed: () async {
-                        String status = signInWithEmailAndPassword(
+                        errorCode = await signInWithEmailAndPassword(
                             _emailController.text,
-                            _passwordController.text).toString();
-                        if(status == null) {
+                            _passwordController.text);
+                        if(errorCode == null) {
                           Navigator.pushReplacementNamed(context, '/todo');
                         } else {
-                          await showDialog(
+                          // ignore: use_build_context_synchronously
+                          showDialog(
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
-                                  title: Text(status),
+                                  title: Text(errorCode!),
                                   actions: [
                                     ElevatedButton(
                                       onPressed: () {

@@ -12,6 +12,7 @@ class _RegistrationState extends State<Registration> {
   @override
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordCheckController = TextEditingController();
   final _nameController = TextEditingController();
   final double _buttonSize = 15;
   final double _buttonPadding = 5;
@@ -37,6 +38,14 @@ class _RegistrationState extends State<Registration> {
       } else {
         return 'An unknown error occurred'; // Handle other exceptions
       }
+    }
+  }
+
+  bool _checkPassword() {
+    if(_passwordController.text == _passwordCheckController.text) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -119,6 +128,7 @@ class _RegistrationState extends State<Registration> {
             Padding(padding: EdgeInsets.all(_buttonPadding),),
 
             TextFormField(
+              controller: _passwordCheckController,
               keyboardType: TextInputType.text,
               obscureText: !_showPassword,
               decoration: InputDecoration(
@@ -148,26 +158,46 @@ class _RegistrationState extends State<Registration> {
                 const Padding(padding: EdgeInsets.only(left: 100, top: 10),),
                 ElevatedButton(
                   onPressed: () async {
-                    errorCode = await registerWithEmailAndPassword(_emailController.text, _passwordController.text);
-                    // ignore: use_build_context_synchronously
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          actions: [
-                            ElevatedButton(
-                                onPressed: () {
-                                  errorCode == null ?
-                                  Navigator.pushReplacementNamed(context, '/') :
-                                  Navigator.pushReplacementNamed(context, '/registration');
-                                },
-                                child: const Text('Ok'),
-                            ),
-                          ],
-                          title: Text(errorCode == null ? 'Registration completed successfully' : errorCode!),
-                        );
-                      }
-                    );
+                    if(_checkPassword()) {
+                      errorCode = await registerWithEmailAndPassword(
+                          _emailController.text, _passwordController.text);
+                      // ignore: use_build_context_synchronously
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              actions: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    errorCode == null ?
+                                    Navigator.pushReplacementNamed(context, '/') :
+                                    Navigator.pushReplacementNamed(context, '/registration');
+                                  },
+                                  child: const Text('Ok'),
+                                ),
+                              ],
+                              title: Text(errorCode == null ? 'Registration completed successfully' : errorCode!),
+                            );
+                          }
+                      );
+                    } else {
+                      await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              actions: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pushReplacementNamed(context, '/registration');
+                                  },
+                                  child: const Text('Ok'),
+                                ),
+                              ],
+                              title: const Text('Password mismatch'),
+                            );
+                          }
+                      );
+                    }
                   },
                   child: Text('Registration', style: TextStyle(fontSize: _buttonSize)),
 
