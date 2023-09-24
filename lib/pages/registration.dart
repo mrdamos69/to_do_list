@@ -12,10 +12,12 @@ class _RegistrationState extends State<Registration> {
   @override
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordCheckController = TextEditingController();
   final _nameController = TextEditingController();
   final double _buttonSize = 15;
   final double _buttonPadding = 5;
   bool _showPassword = false;
+  String? errorCode;
 
   void _togglevisibility() {
     setState(() {
@@ -23,20 +25,27 @@ class _RegistrationState extends State<Registration> {
     });
   }
 
-  void _registration (String emailAddress, String password) async {
+  Future<String?> registerWithEmailAndPassword(String email, String password) async {
     try {
-      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailAddress,
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
         password: password,
       );
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        print('The password provided is too weak.');
-      } else if (e.code == 'email-already-in-use') {
-        print('The account already exists for that email.');
-      }
+      return null; // Registration successful
     } catch (e) {
-      print(e);
+      if (e is FirebaseAuthException) {
+        return e.message; // Return the Firebase error message
+      } else {
+        return 'An unknown error occurred'; // Handle other exceptions
+      }
+    }
+  }
+
+  bool _checkPassword() {
+    if(_passwordController.text == _passwordCheckController.text) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -51,6 +60,7 @@ class _RegistrationState extends State<Registration> {
         appBar: AppBar(
           title: const Text('Registration in ToDoList', style: TextStyle(color: Colors.white),),
           centerTitle: true,
+          leading: Image.asset('lib/logo/logo.png', width: 2, height: 2, scale: 1),
         ),
 
         body: Column(
@@ -65,9 +75,9 @@ class _RegistrationState extends State<Registration> {
                   labelText: "Enter your email",
                   hintStyle: TextStyle(color: Colors.white12),
                   labelStyle: TextStyle(color: Colors.white54),
-                  icon: Icon(Icons.email_outlined, color: Colors.lightBlue,)
+                  icon: Icon(Icons.email_outlined, color: Colors.orange,)
               ),
-              style: const TextStyle(color: Colors.lightBlue),
+              style: const TextStyle(color: Colors.orange),
               validator: (value) {_isValidEmail(value.toString());},
             ),
 
@@ -83,10 +93,10 @@ class _RegistrationState extends State<Registration> {
                 border: InputBorder.none,
                 icon: Icon(
                   Icons.account_circle_outlined,
-                  color: Colors.lightBlue,
+                  color: Colors.orange,
                 ),
               ),
-              style: const TextStyle(color: Colors.lightBlue),
+              style: const TextStyle(color: Colors.orange),
 
             ),
 
@@ -103,7 +113,7 @@ class _RegistrationState extends State<Registration> {
                 border: InputBorder.none,
                 icon: const Icon(
                   Icons.password,
-                  color: Colors.lightBlue,
+                  color: Colors.orange,
                 ),
                 suffixIcon: GestureDetector(
                   onTap: _togglevisibility,
@@ -112,12 +122,13 @@ class _RegistrationState extends State<Registration> {
                           .visibility_off, color: Colors.white24),
                 ),
               ),
-              style: const TextStyle(color: Colors.lightBlue),
+              style: const TextStyle(color: Colors.orange),
             ),
 
             Padding(padding: EdgeInsets.all(_buttonPadding),),
 
             TextFormField(
+              controller: _passwordCheckController,
               keyboardType: TextInputType.text,
               obscureText: !_showPassword,
               decoration: InputDecoration(
@@ -127,7 +138,7 @@ class _RegistrationState extends State<Registration> {
                 border: InputBorder.none,
                 icon: const Icon(
                   Icons.password,
-                  color: Colors.lightBlue,
+                  color: Colors.orange,
                 ),
 
                 suffixIcon: GestureDetector(
@@ -136,10 +147,9 @@ class _RegistrationState extends State<Registration> {
                       _showPassword ? Icons.visibility : Icons
                           .visibility_off, color: Colors.white24
                   ),
-
                 ),
               ),
-              style: const TextStyle(color: Colors.lightBlue),
+              style: const TextStyle(color: Colors.orange),
             ),
 
             Padding(padding: EdgeInsets.all(_buttonPadding),),
@@ -148,23 +158,46 @@ class _RegistrationState extends State<Registration> {
                 const Padding(padding: EdgeInsets.only(left: 100, top: 10),),
                 ElevatedButton(
                   onPressed: () async {
-                    await showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('You are successfully registered'),
-                          actions: [
-                            ElevatedButton(
-                                onPressed: () {
-                                  _registration(_emailController.text, _passwordController.text,);
-                                  Navigator.pushReplacementNamed(context, '/');
-                                },
-                                child: const Text('Ok'),
-                            ),
-                          ],
-                        );
-                      }
-                    );
+                    if(_checkPassword()) {
+                      errorCode = await registerWithEmailAndPassword(
+                          _emailController.text, _passwordController.text);
+                      // ignore: use_build_context_synchronously
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              actions: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    errorCode == null ?
+                                    Navigator.pushReplacementNamed(context, '/') :
+                                    Navigator.pushReplacementNamed(context, '/registration');
+                                  },
+                                  child: const Text('Ok'),
+                                ),
+                              ],
+                              title: Text(errorCode == null ? 'Registration completed successfully' : errorCode!),
+                            );
+                          }
+                      );
+                    } else {
+                      await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              actions: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pushReplacementNamed(context, '/registration');
+                                  },
+                                  child: const Text('Ok'),
+                                ),
+                              ],
+                              title: const Text('Password mismatch'),
+                            );
+                          }
+                      );
+                    }
                   },
                   child: Text('Registration', style: TextStyle(fontSize: _buttonSize)),
 

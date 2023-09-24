@@ -25,7 +25,7 @@ class _HomeState extends State<Home> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (BuildContext context){
         return Scaffold(
-          appBar: AppBar(title: Text('Меню'),),
+          appBar: AppBar(title: Text('Menu'),),
           body: Row(
             children: [
               ElevatedButton(
@@ -33,12 +33,12 @@ class _HomeState extends State<Home> {
                     Navigator.pop(context);
                     Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                   },
-                  child: Text('На главную')
+                  child: Text('Sign out')
               ),
               Padding(padding: EdgeInsets.only(left: 15)),
               Text('Наше простое меню')
             ],
-          )
+          ),
         );
       })
     );
@@ -48,7 +48,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text('Список дел', style: TextStyle(color: Colors.white),),
+        title: Text('To do list', style: TextStyle(color: Colors.white),),
         centerTitle: true,
         actions: [
           IconButton(
@@ -56,6 +56,7 @@ class _HomeState extends State<Home> {
               icon: Icon(Icons.menu_outlined)
           )
         ],
+        leading: Image.asset('lib/logo/logo.png', width: 2, height: 2, scale: 1),
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('items').snapshots(),

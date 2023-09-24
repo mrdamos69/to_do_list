@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 class login extends StatefulWidget {
@@ -13,6 +14,24 @@ class _loginState extends State<login> {
       final _emailController = TextEditingController();
       final _passwordController = TextEditingController();
       bool _showPassword = false;
+      String? errorCode;
+
+      Future<String?> signInWithEmailAndPassword(
+          String email, String password) async {
+        try {
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+          return null; // Sign-in successful
+        } catch (e) {
+          if (e is FirebaseAuthException) {
+            return e.message; // Return the Firebase error message
+          } else {
+            return 'An unknown error occurred'; // Handle other exceptions
+          }
+        }
+      }
 
       void _togglevisibility() {
         setState(() {
@@ -31,6 +50,7 @@ class _loginState extends State<login> {
               title: const Text('Welcome in ToDoList', style: TextStyle(color: Colors.white),),
               centerTitle: true,
               iconTheme: const IconThemeData(color: Colors.deepOrangeAccent),
+              leading: Image.asset('lib/logo/logo.png', width: 2, height: 2, scale: 1),
             ),
 
 
@@ -44,9 +64,9 @@ class _loginState extends State<login> {
                         labelText: "Enter your email",
                         hintStyle: TextStyle(color: Colors.white12),
                         labelStyle: TextStyle(color: Colors.white54),
-                        icon: Icon(Icons.email_outlined, color: Colors.lightBlue,)
+                        icon: Icon(Icons.email_outlined, color: Colors.orange,)
                     ),
-                  style: const TextStyle(color: Colors.lightBlue),
+                  style: const TextStyle(color: Colors.orange),
                     validator: (value) {_isValidEmail(value.toString());},
                 ),
 
@@ -63,7 +83,7 @@ class _loginState extends State<login> {
                         border: InputBorder.none,
                         icon: const Icon(
                           Icons.password,
-                          color: Colors.lightBlue,
+                          color: Colors.orange,
                         ),
                         suffixIcon: GestureDetector(
                           onTap: _togglevisibility,
@@ -72,7 +92,7 @@ class _loginState extends State<login> {
                             .visibility_off, color: Colors.white24),
                           ),
                         ),
-                    style: const TextStyle(color: Colors.lightBlue),
+                    style: const TextStyle(color: Colors.orange),
                 ),
 
                 const Padding(padding: EdgeInsets.all(10),),
@@ -82,12 +102,33 @@ class _loginState extends State<login> {
                     const Padding(padding: EdgeInsets.only(left: 100, top: 10),),
 
                     ElevatedButton(
-                      onPressed: () {
-                        // Navigator.pushNamed(context, '/todo');
-                        // Navigator.pushNamedAndRemoveUntil(context, '/todo', (route) => false);
-                        Navigator.pushReplacementNamed(context, '/todo');
+                      onPressed: () async {
+                        errorCode = await signInWithEmailAndPassword(
+                            _emailController.text,
+                            _passwordController.text);
+                        if(errorCode == null) {
+                          Navigator.pushReplacementNamed(context, '/todo');
+                        } else {
+                          // ignore: use_build_context_synchronously
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text(errorCode!),
+                                  actions: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pushReplacementNamed(context, '/');
+                                      },
+                                      child: const Text('Ok'),
+                                    ),
+                                  ],
+                                );
+                              }
+                          );
+                        }
                       },
-                      child: const Text('Login', style: TextStyle(fontSize: 15)),
+                      child: const Text('Sign in', style: TextStyle(fontSize: 15)),
 
                     ),
 
